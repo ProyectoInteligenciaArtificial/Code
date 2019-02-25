@@ -2,6 +2,15 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/Operator.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/Weight.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/Terrain.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/Cell.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/Map.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/State.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/ProjectAI.java</file>
+            <file>file:/home/jesus/NetBeansProjects/ProjectAI/src/projectai/ImageManipulator.java</file>
+        </group>
     </open-files>
 </project-private>

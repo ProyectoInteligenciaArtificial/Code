@@ -20,7 +20,7 @@ public class Map {
     protected State currentState;
     
     private int mapSize = 0;
-    private int cellSize = 50;
+    protected int cellSize = 50;
     protected ArrayList<ArrayList<Cell>> cells = new ArrayList();
     protected ArrayList<Terrain> terrains = new ArrayList();
     protected ArrayList<Player> players = new ArrayList();
@@ -85,11 +85,14 @@ public class Map {
     
     public BufferedImage getMap() {
         BufferedImage img = new BufferedImage(this.mapSize * this.cellSize, this.mapSize * this.cellSize,  BufferedImage.TYPE_INT_RGB);
+        System.out.println(mapSize);
+        System.out.println(cellSize);
         
         for (int i = 0; i < this.mapSize; i++) {
             for (int j = 0; j < this.mapSize; j++) {
                 for (int y = 0; y < this.cellSize; y++) {
                     for (int x = 0; x < this.cellSize; x++) {
+                        //System.out.println(x + " " + y);
                         int rgb = cells.get(i).get(j).getTerrain().getImage().getRGB(x, y);
                         img.setRGB((this.cellSize * j) + x, (this.cellSize * i) + y, rgb);
                     }
@@ -115,6 +118,14 @@ public class Map {
     
     public void setCellSize(int viewPortHeight) {
         this.cellSize = viewPortHeight / this.mapSize;
+        
+        for (ArrayList<Cell> cellRow : cells) {
+            for (Cell cell : cellRow) {
+                Terrain terrain = cell.getTerrain();
+                BufferedImage img = terrain.getImage();
+                terrain.setImage(ImageManipulator.resize(img, cellSize, cellSize));
+            }
+        }
     }
     
     public int getCellSize() {
@@ -122,11 +133,23 @@ public class Map {
     }
     
     private void addTerrain(int terrainId) {
-        Terrain terrain = new Terrain(terrainId);
+        for (Terrain terrain : terrains) {
+            if (terrain.getId() == terrainId) {
+                return;
+            }
+        }
+        
+        Terrain terrain = new Terrain(terrainId, cellSize);
         this.terrains.add(terrain);
     }
     
     private void addTerrain(int terrainId, int rgb) {
+        for (Terrain terrain : terrains) {
+            if (terrain.getId() == terrainId) {
+                return;
+            }
+        }
+        
         Terrain terrain = new Terrain(terrainId, rgb, 100);
         this.terrains.add(terrain);
     }

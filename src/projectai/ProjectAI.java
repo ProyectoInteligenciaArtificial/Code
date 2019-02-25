@@ -10,26 +10,20 @@ package projectai;
  * @author jesus
  */
 
-import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 public class ProjectAI {
-
-    /**
-     * @param args the command line arguments
-     */
+    private static final JLabel lbl = new JLabel();
+    
     public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException {
         // TODO code application logic here        
         JFrame frame = new JFrame("test");
@@ -41,11 +35,14 @@ public class ProjectAI {
         Map map = new Map();
         map.loadMap(new FileReader("mapFile"));
         
-        BufferedImage img = map.getMap();
-        JLabel lbl = new JLabel();
-        
-        ImageIcon icon = new ImageIcon(img);
-        lbl.setIcon(icon);
+        frame.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent componentEvent) {
+                map.setCellSize(frame.getHeight() < frame.getWidth() ? frame.getHeight() : frame.getWidth());
+                BufferedImage img = map.getMap();        
+                ImageIcon icon = new ImageIcon(img);
+                lbl.setIcon(icon);
+            }
+        });
         
         frame.add(lbl);
         

@@ -17,23 +17,24 @@ class Terrain {
     private String name;
     private BufferedImage image = null;
     
-    Terrain(int terrainId) {
+    Terrain(int terrainId, int size) {
         setId(terrainId);
+        size = size == 0 ? 50 : size;
         
         if (terrainId == 1) {
-            setImage(Color.GREEN.getRGB(), 50);
+            setImage(Color.GREEN.getRGB(), size);
         }
         
         if (terrainId == 2) {
-            setImage(Color.BLUE.getRGB(), 50);
+            setImage(Color.BLUE.getRGB(), size);
         }
         
         if (terrainId == 3) {
-            setImage(Color.WHITE.getRGB(), 50);
+            setImage(Color.WHITE.getRGB(), size);
         }
         
         if (terrainId == 4) {
-            setImage(Color.RED.getRGB(), 50);
+            setImage(Color.RED.getRGB(), size);
         }
     }
     

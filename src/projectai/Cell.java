@@ -33,7 +33,7 @@ class Cell extends Map {
     }
     
     public void setTerrain(int _terrain) {
-        this.terrain = this.terrains.get(this.terrains.indexOf(new Terrain(_terrain)));
+        this.terrain = this.terrains.get(this.terrains.indexOf(new Terrain(_terrain, this.cellSize)));
     }
     
     public Terrain getTerrain() {
