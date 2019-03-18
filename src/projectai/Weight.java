@@ -9,31 +9,42 @@ package projectai;
  *
  * @author jesus
  */
-class Weight {
+final class Weight {
     private Double weight;
     private int terrainId;
+    
+    Weight(Weight w) {
+        setWeight(w.getWeight());
+        setTerrainId(w.getTerrainId());
+    }
 
-    Weight() {
-        this.weight = null;
+    Weight(double w, int tId) {
+        setWeight(w);
+        setTerrainId(tId);
+    }
+    
+    Weight(double w, Terrain terrain) {
+        setWeight(w);
+        setTerrainId(terrain.getId());
     }
     
     public void setWeight(double w) {
-        this.weight = w;
+        weight = Math.floor(w * 100) / 100;
     }
     
     public double getWeight() {
-        return this.weight;
+        return weight;
     }
     
-    public void setTerrain(int tid) {
-        this.terrainId = tid;
+    public void setTerrainId(Terrain terrain) {
+        terrainId = terrain.getId();
     }
     
-    public void setTerrain(Terrain terrain) {
-        this.terrainId = terrain.getId();
+    public void setTerrainId(int tid) {
+        terrainId = tid;
     }
     
-    public int getTerrain() {
+    public int getTerrainId() {
         return terrainId;
     }
 }

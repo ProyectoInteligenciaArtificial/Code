@@ -5,8 +5,13 @@
  */
 package projectai;
 
+import java.util.ArrayList;
 
-public class Operator extends Map {
+/**
+ *
+ * @author jesus
+ */
+final class Operator {
     
     private final int movement;
     
@@ -19,47 +24,38 @@ public class Operator extends Map {
         this.movement = m;
     }
     
-    public boolean isAplicable(int playerId) {
-        Player player = this.getPlayer(playerId);
-        State nextState = this.getNextState(this.currentState);
-        Terrain terrain = this.getTerrain(nextState);
-        Weight [] weights = player.getWeights();
-        
-        for (Weight weight : weights) {
-            if (weight.getTerrain() == terrain.getId()) {
-                return true;
-            }
+    /**
+     *
+     * @param player
+     * @param nextState
+     * @return
+     */
+    public boolean isAplicable(Player player, State nextState) {
+        if (nextState.getX() <= 0 || nextState.getX() > ProjectAI.map.getWidth() || nextState.getY() <= 0 || nextState.getY() > ProjectAI.map.getHeight()) {
+            return false;
         }
         
-        return false;
+        ArrayList<Weight> weights = player.getWeights();
+        Terrain terrain = ProjectAI.map.getTerrain(nextState);
+        
+        return weights.stream().anyMatch((weight) -> (weight.getTerrainId() == terrain.getId()));
     }
     
-    private State getNextState(State cs) {
-        if (this.movement == this.MOVE_INT_UP) {
-            return new State(cs.getX(), cs.getY()-1);
+    /**
+     *
+     * @param cs
+     * @return
+     */
+    public State getNextState(State cs) {
+        switch (this.movement) {
+            case Operator.MOVE_INT_UP:
+                return new State(cs.getX(), cs.getY()-1);
+            case Operator.MOVE_INT_RIGHT:
+                return new State(cs.getX()+1, cs.getY());
+            case Operator.MOVE_INT_DOWN:
+                return new State(cs.getX(), cs.getY()+1);
+            default:
+                return new State(cs.getX()-1, cs.getY());
         }
-        else if (this.movement == this.MOVE_INT_RIGHT) {
-            return new State(cs.getX()+1, cs.getY());
-        }
-        else if (this.movement == this.MOVE_INT_DOWN) {
-            return new State(cs.getX(), cs.getY()+1);
-        }
-        else {
-            return new State(cs.getX()-1, cs.getY());
-        }
-    }
-
-    public Player getPlayer(int playerId) {
-        for (Player player : this.players) {
-            if (player.getId() == playerId) {
-                return player;
-            }
-        }
-        
-        return null;
-    }
-    
-    public Terrain getTerrain(State nextState) {
-        return this.cells.get(nextState.getY()).get(nextState.getX()).getTerrain();
     }
 }

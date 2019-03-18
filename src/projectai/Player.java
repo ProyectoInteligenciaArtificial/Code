@@ -6,28 +6,68 @@
 package projectai;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 /**
  *
  * @author jesus
  */
-class Player {
-    private int id;
+final class Player {
     private String name;
     private BufferedImage img;
     
-    private final int [] position;
-    Weight[] weights;
+    private ArrayList<Weight> weights;
 
     Player() {
-        this.position = new int[]{0, 0};
+        name = "default name";
+        weights = new ArrayList();
     }
     
-    public int getId() {
-        return this.id;
+    Player(Player player) {
+        weights = new ArrayList();
+        setName(player.getName());
+        setImage(player.getImage());
+        setWeights(player.getWeights());
     }
     
-    public Weight[] getWeights() {
-        return this.weights;
+    Player(String _name) {
+        setName(_name);
+        weights = new ArrayList();
+    }
+    
+    Player(String _name, BufferedImage image) {
+        setName(_name);
+        setImage(image);
+        weights = new ArrayList();
+    }
+    
+    public void setName(String _name) {
+        name = _name;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setImage(BufferedImage image) {
+        img = ImageManipulator.copyImage(image);
+    }
+    
+    public BufferedImage getImage() {
+        return img;
+    }
+    
+    public void addWeight(Weight w) {
+        weights.add(w);
+    }
+    
+    public void setWeights(ArrayList<Weight> wL) {
+        wL.stream().forEach((w) -> {
+            addWeight(w);
+        });
+    }
+    
+    public ArrayList<Weight> getWeights() {
+        return weights;
     }
 }
