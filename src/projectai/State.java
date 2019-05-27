@@ -14,8 +14,8 @@ final class State {
     private int y;
 
     State() {
-        this.x = 0;
-        this.y = 0;
+        this.x = 1;
+        this.y = 1;
     }
     
     State(State state) {
@@ -44,16 +44,21 @@ final class State {
         return this.x;
     }
     
+    public String getXString() {
+        return String.valueOf('A' + (x - 1));
+    }
+    
     public int getY() {
         return this.y;
     }
     
     @Override
     public String toString() {
-        return "(" + x + ", " + y + ")";
+        return "(" + (char) ('A' + x - 1) + ", " + y + ")";
     }
     
-    public boolean equals(State state) {
-        return x == state.x && y == state.y;
+    @Override
+    public boolean equals(Object obj) {
+        return x == ((State)obj).x && y == ((State)obj).y;
     }
 }

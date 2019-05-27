@@ -6,22 +6,14 @@
 package projectai;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.EventQueue;
 import java.awt.Graphics2D;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.TileObserver;
-import java.awt.image.WritableRenderedImage;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import static projectai.Principal.map;
 
 /**
  *
@@ -29,7 +21,6 @@ import javax.swing.JLabel;
  */
 
 public class ProjectAI {
-    protected static Map map = new Map();
     
     public interface Movements {
         public static final Operator MOVE_UP = new Operator(Operator.MOVE_INT_UP);
@@ -39,9 +30,22 @@ public class ProjectAI {
     }
     
     public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException {
-        // TODO code application logic here
+		// TODO code application logic here
         
-        map.loadMap(new FileReader("mapFile"));
+        EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                        try {
+                            Principal frame = new Principal();
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+                }
+        });
+        
+    	/*
+        map.loadMap(new FileReader("Mapas/LaberintoProyecto3.txt"));
         
         BufferedImage image = new BufferedImage(50, 50, BufferedImage.TYPE_INT_RGB);
         
@@ -50,15 +54,20 @@ public class ProjectAI {
         g2d.fill(new Ellipse2D.Float(0, 0, 50, 50));
         g2d.dispose();
         
-        map.addPlayer(new Player("test", image));
-        map.getSelectedPlayer().addWeight(new Weight(0, 2));
-        map.getSelectedPlayer().addWeight(new Weight(5, 1));
+        map.getTerrains().get(0).setName("agua");
+        map.getTerrains().get(0).setImage(Color.BLUE.getRGB(), 50);
+        map.getTerrains().get(1).setName("tierra");
+        map.getTerrains().get(1).setImage(Color.DARK_GRAY.getRGB(), 50);
         
-        map.setInitialState(new State('A', 1));
-        map.setFinalState(new State(map.getWidth(), map.getHeight()));
+        map.addPlayer(new Player("test", image));
+        map.getSelectedPlayer().addWeight(new Weight(0, map.getTerrains().get(1).getId()));
+        
+        map.setInitialState(new State('B', 2));
+        map.setFinalState(new State('H', 15));
         map.setCellSize(50);
         
         UI.show();
+        */
     }
     
 }

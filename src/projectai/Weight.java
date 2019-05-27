@@ -5,27 +5,29 @@
  */
 package projectai;
 
+import static projectai.Principal.map;
+
 /**
  *
  * @author jesus
  */
 final class Weight {
     private Double weight;
-    private int terrainId;
+    private int terrainID;
     
     Weight(Weight w) {
         setWeight(w.getWeight());
-        setTerrainId(w.getTerrainId());
+        setTerrainID(w.getTerrainID());
     }
 
-    Weight(double w, int tId) {
+    Weight(double w, int tid) {
         setWeight(w);
-        setTerrainId(tId);
+        setTerrainID(tid);
     }
     
     Weight(double w, Terrain terrain) {
         setWeight(w);
-        setTerrainId(terrain.getId());
+        setTerrainID(terrain.getId());
     }
     
     public void setWeight(double w) {
@@ -36,15 +38,20 @@ final class Weight {
         return weight;
     }
     
-    public void setTerrainId(Terrain terrain) {
-        terrainId = terrain.getId();
+    public void setTerrainID(Terrain terrain) {
+        terrainID = terrain.getId();
     }
     
-    public void setTerrainId(int tid) {
-        terrainId = tid;
+    public void setTerrainID(int tid) {
+        terrainID = tid;
     }
     
-    public int getTerrainId() {
-        return terrainId;
+    public int getTerrainID() {
+        return terrainID;
+    }
+    
+    @Override
+    public String toString() {
+        return "(" + map.getTerrain(terrainID).getName() + "," + weight + ")";
     }
 }

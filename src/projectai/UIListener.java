@@ -5,31 +5,42 @@
  */
 package projectai;
 
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
-import static projectai.ProjectAI.Movements.MOVE_DOWN;
-import static projectai.ProjectAI.Movements.MOVE_LEFT;
-import static projectai.ProjectAI.Movements.MOVE_RIGHT;
-import static projectai.ProjectAI.Movements.MOVE_UP;
-import static projectai.ProjectAI.map;
-import static projectai.UI.LBL;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+
+import static projectai.Principal.Movements.MOVE_UP;
+import static projectai.Principal.Movements.MOVE_RIGHT;
+import static projectai.Principal.Movements.MOVE_DOWN;
+import static projectai.Principal.Movements.MOVE_LEFT;
+import static projectai.Principal.map;
+import static projectai.Principal.tree;
 
 /**
  *
  * @author jesus
  */
-public class UIListener {
+public class UIListener extends UI{	
     public static void addComponentListener(JFrame frame) {
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
                 int sizeW = frame.getWidth();
-                int sizeH = frame.getHeight() + 40;
+                int sizeH = frame.getHeight() - 40;
                 int size;
                 
                 if (sizeW < (50 * (map.getWidth())) || sizeH < (50 * (map.getHeight()) + 40)) {
@@ -42,7 +53,7 @@ public class UIListener {
                 
                 map.setCellSize(size - (size / map.getSize()));
                 
-                ImageManipulator.setImage(map.getMap());
+                ImageManipulator.setImage(map.getMap(), LBL);
             }
         });
     }
@@ -72,17 +83,21 @@ public class UIListener {
                 }
                 
                 nextState = op.getNextState(map.getCurrentState());
-                if (op.isAplicable(map.getSelectedPlayer(), nextState)) {
-                    map.setCurrentState(nextState);
-                    
-                    if (map.getCurrentState().equals(map.getFinalState())) {
-                        System.out.println("Success!");
-                    }
-                    
-                    BufferedImage img = map.getMap();
                 
-                    ImageIcon icon = new ImageIcon(img);
-                    LBL.setIcon(icon);
+                if (op.isAplicable(map.getSelectedPlayer(), nextState) && !map.isFinished()) {
+                    map.setCurrentState(nextState);
+                    ImageManipulator.setImage(map.getMap(), UI.LBL);
+                }
+                if (map.getCurrentState().equals(map.getFinalState())) {
+                	map.setFinish(true);
+                    EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                        	JDialog frame_Tree = new TreeFrame(Search.getBackTrackingTree(map.getInitialState(), map.getFinalState()), frame);
+                        }
+                    });
+                    
+                    JOptionPane.showMessageDialog(frame, "You Win!");
                 }
             }
 

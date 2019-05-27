@@ -16,7 +16,7 @@ final class Player {
     private String name;
     private BufferedImage img;
     
-    private ArrayList<Weight> weights;
+    private final ArrayList<Weight> weights;
 
     Player() {
         name = "default name";
@@ -42,6 +42,9 @@ final class Player {
     }
     
     public void setName(String _name) {
+        if (_name.matches("^\\s*$")) {
+            throw new RuntimeException("'" + _name + "' is not a valid name.");
+        }
         name = _name;
     }
     
@@ -57,8 +60,25 @@ final class Player {
         return img;
     }
     
-    public void addWeight(Weight w) {
-        weights.add(w);
+    public void addWeight(Weight weight) {
+        if (weights.stream().anyMatch((Weight w) -> {
+            return w.getTerrainID() == weight.getTerrainID();
+        })) {
+            weights.stream().filter((Weight w) -> {
+                return w.getTerrainID() == weight.getTerrainID();
+            }).forEach((Weight w1) -> {
+                w1.setWeight(weight.getWeight());
+            });
+            return;
+        }
+        
+        weights.add(weight);
+    }
+    
+    public void removeWeight(int terrainId) {
+        weights.removeIf((Weight w) -> {
+            return w.getTerrainID() == terrainId;
+        });
     }
     
     public void setWeights(ArrayList<Weight> wL) {

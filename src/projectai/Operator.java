@@ -6,6 +6,7 @@
 package projectai;
 
 import java.util.ArrayList;
+import static projectai.Principal.map;
 
 /**
  *
@@ -31,14 +32,14 @@ final class Operator {
      * @return
      */
     public boolean isAplicable(Player player, State nextState) {
-        if (nextState.getX() <= 0 || nextState.getX() > ProjectAI.map.getWidth() || nextState.getY() <= 0 || nextState.getY() > ProjectAI.map.getHeight()) {
+        if (nextState.getX() <= 0 || nextState.getX() > map.getWidth() || nextState.getY() <= 0 || nextState.getY() > map.getHeight()) {
             return false;
         }
         
         ArrayList<Weight> weights = player.getWeights();
-        Terrain terrain = ProjectAI.map.getTerrain(nextState);
+        Terrain terrain = map.getTerrain(nextState);
         
-        return weights.stream().anyMatch((weight) -> (weight.getTerrainId() == terrain.getId()));
+        return weights.stream().anyMatch((Weight weight) -> (weight.getTerrainID() == terrain.getId()));
     }
     
     /**
@@ -57,5 +58,9 @@ final class Operator {
             default:
                 return new State(cs.getX()-1, cs.getY());
         }
+    }
+    
+    public int getMovementID() {
+    	return movement;
     }
 }

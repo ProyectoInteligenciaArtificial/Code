@@ -13,13 +13,18 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import javax.swing.ImageIcon;
-import static projectai.UI.LBL;
+import javax.swing.JLabel;
+
+import static projectai.Select.size;
 
 /**
  *
  * @author jesus
  */
 final class ImageManipulator {
+	private static BufferedImage originalImage;
+    private static BufferedImage manipulatedImage;
+    
     protected static BufferedImage resize(BufferedImage img, int newW, int newH) {
         Toolkit toolkit =  Toolkit.getDefaultToolkit ();
         Dimension dim = toolkit.getScreenSize();
@@ -42,8 +47,31 @@ final class ImageManipulator {
         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
     
-    public static void setImage(BufferedImage img) {
+    public static void setImage(BufferedImage img, JLabel LBL) {
+    	originalImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+        manipulatedImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+        
         ImageIcon icon = new ImageIcon(img);
         LBL.setIcon(icon);
+    }
+    
+    public static void setImage(int rgb, JLabel LBL) {
+        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
+        
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getHeight(); x++) {
+                img.setRGB(x, y, rgb);
+            }
+        }
+        
+        ImageIcon icon = new ImageIcon(img);
+        LBL.setIcon(icon);
+    }
+    
+    protected static BufferedImage getManipulatedImage() {
+        if (manipulatedImage == null)
+            return null;
+        
+        return manipulatedImage;
     }
 }
