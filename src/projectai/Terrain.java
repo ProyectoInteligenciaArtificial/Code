@@ -6,10 +6,7 @@
 package projectai;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 
 /**
  *
@@ -17,32 +14,17 @@ import java.awt.image.WritableRaster;
  */
 final class Terrain {
     private int id;
-    private String name;
+    private Integer color;
+    private String name = null;
     private BufferedImage image = null;
     
-    Terrain(int terrainId, int size) {
+    Terrain(int terrainId) {
         setId(terrainId);
-        size = size == 0 ? 50 : size;
-        
-        switch (terrainId) {
-            case 1:
-                setImage(Color.GREEN.getRGB(), size);
-                break;
-            case 2:
-                setImage(Color.BLUE.getRGB(), size);
-                break;
-            case 3:
-                setImage(Color.WHITE.getRGB(), size);
-                break;
-            default:
-                setImage(Color.RED.getRGB(), size);
-                break;
-        }
     }
     
     Terrain(int terrainId, int rgb, int size) {
         setId(terrainId);
-        setImage(rgb, size);
+        setImage(color = rgb, size);
     }
     
     Terrain(int terrainId, BufferedImage img) {
@@ -65,11 +47,14 @@ final class Terrain {
     }
     
     public void setName(String terrainName) {
+        if (terrainName.matches("^\\s*$")) {
+            throw new RuntimeException("'" + terrainName + "' is not a valid name.");
+        }
         this.name = terrainName;
     }
     
     public String getName() {
-        return this.name;
+        return name != null ? name : Integer.toString(id);
     }
     
     public void setImage(BufferedImage img) {
@@ -77,6 +62,9 @@ final class Terrain {
     }
     
     public void setImage(int rgb, int size) {
+        if (rgb == Color.WHITE.getRGB() || rgb == Color.BLACK.getRGB()) {
+            throw new RuntimeException("White and Black are not allowed colors");
+        }
         this.image = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
         
         for (int y = 0; y < image.getHeight(); y++) {
@@ -84,9 +72,14 @@ final class Terrain {
                 this.image.setRGB(x, y, rgb);
             }
         }
+        color = rgb;
     }
     
     public BufferedImage getImage() {
         return image;
+    }
+    
+    public Integer getColorRGB() {
+        return color;
     }
 }

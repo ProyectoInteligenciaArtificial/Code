@@ -5,10 +5,13 @@
  */
 package projectai;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Ellipse2D.Float;
 import java.awt.image.BufferedImage;
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,29 +28,47 @@ public class Map {
     private State finalState;
     private State currentState;
     
-    private final ArrayList<State> route;
-    
     private int visitCounter;
-
-    private int mapWidth = 0;
-    private int mapHeight = 0;
+    private int mapWidth;
+    private int mapHeight;
     private int cellSize;
+    private int selectedPlayer;
+    
+    private boolean finished;
+    
     private final ArrayList<ArrayList<Cell>> cells;
     private final ArrayList<Terrain> terrains;
     private final ArrayList<Player> players;
-    private int selectedPlayer;
+    private final ArrayList<Node> route;
+    private static ArrayList<State> solution;
 
+    /**
+     *
+     */
     public Map() {
-        this.cells = new ArrayList();
-        route = new ArrayList();
-        players = new ArrayList();
-        terrains = new ArrayList();
-        selectedPlayer = -1;
-        visitCounter = 0;
         initialState = null;
+        finalState = null;
         currentState = null;
+        
+        visitCounter = 0;
+        mapWidth = 0;
+        mapHeight = 0;
+        cellSize = 50;
+        selectedPlayer = -1;
+        
+        finished = false;
+        
+        cells = new ArrayList();
+        terrains = new ArrayList();
+        players = new ArrayList();
+        route = new ArrayList();
     }
 
+    /**
+     *
+     * @param mapFile
+     * @throws IOException
+     */
     public void loadMap(FileReader mapFile) throws IOException {
         String code = "";
         int character;
@@ -70,6 +91,7 @@ public class Map {
                     break;
 
                 case ',':
+                    checkForVoid(code);
                     addTerrain(Integer.parseInt(code));
                     cell = createCell(Integer.parseInt(code));
                     rowCell.add(cell);
@@ -78,6 +100,7 @@ public class Map {
                     break;
 
                 case '\n':
+                    checkForVoid(code);
                     addTerrain(Integer.parseInt(code));
                     cell = createCell(Integer.parseInt(code));
                     rowCell.add(cell);
@@ -100,8 +123,18 @@ public class Map {
                     throw new RuntimeException("Parse Error: invalid symbols found");
             }
         }
-
+        
         mapHeight = rows;
+        
+        if (mapWidth == 0 || mapHeight == 0) {
+            throw new RuntimeException("The map is empty.");
+        }
+    }
+    
+    private void checkForVoid(String code) {
+        if (code.equals("")) {
+            throw new RuntimeException("Parse Error: the file have void id's");
+        }
     }
 
     /**
@@ -118,8 +151,8 @@ public class Map {
 
         return null;
     }
-
-    public BufferedImage getMap() {
+    
+    public BufferedImage getMapPrev(boolean is, boolean fs) {
         BufferedImage img = new BufferedImage((mapWidth + 1) * cellSize, (mapHeight + 1) * cellSize, BufferedImage.TYPE_INT_RGB);
         int rgb;
         int factor = 4;
@@ -147,32 +180,119 @@ public class Map {
             }
         }
         
+        if (is && fs) {
+            currentState = initialState;
+            drawStateMarks(g2d);
+        } else {
+            for (int i = 0; i < cells.size(); i++) {
+                for (int j = 1; j < cells.get(i).size(); j++) {
+                    if (stateReachable(currentState = new State((char) ('A' + i), j))) {
+                        break;
+                    }
+                }
+            }
+        }
+        
         drawCoords(g2d);
-        drawStateMarks(g2d);
         drawPlayer(g2d, img);
+        
+        return img;
+    }
+    
+    /**
+     *
+     * @return
+     */
+    public BufferedImage getMap() {
+        BufferedImage img = new BufferedImage((mapWidth + 1) * cellSize, (mapHeight + 1) * cellSize, BufferedImage.TYPE_INT_RGB);
+        int rgb;
+        int factor = 4;
+        int fontSize = cellSize / factor;
+        String str;
+
+        Font font_2 = new Font("TimesRoman", Font.PLAIN, fontSize - 5);
+
+        Graphics2D g2d = img.createGraphics();
+
+        for (int i = 1; i < mapHeight + 1; i++) {
+            for (int j = 1; j < mapWidth + 1; j++) {
+            	if (isDiscovered(j-1,i-1) || getFinalState().equals(new State(j, i))) {
+            		for (int y = 0; y < cellSize - 1; y++) {
+                        for (int x = 0; x < cellSize - 1; x++) {
+                            rgb = getTerrain(cells.get(i - 1).get(j - 1).getTerrainId()).getImage().getRGB(x, y);
+                            img.setRGB((cellSize * j) + x, (cellSize * i) + y, rgb);
+                        }
+                    }
+                    str = cells.get(i - 1).get(j - 1).getStringVC();
+                    g2d.setFont(font_2);
+
+                    for (int k = 0; k < str.length(); k++) {
+                        g2d.drawString(str.substring(k, k + 1), j * cellSize + ((k % (factor * 2)) * (fontSize / 2)), i * (cellSize) + fontSize + ((int) (k / (factor * 2)) * fontSize));
+                    }
+            	}
+            }
+        }
+        
+        if (finished) {
+        	drawSolution(g2d);
+        }
+        
+        drawCoords(g2d);
+        drawPlayer(g2d, img);
+        drawStateMarks(g2d);
 
         return img;
     }
+    
+    public boolean isDiscovered(int x, int y) {
+    	return !(cells.get(y).get(x).getVisitCounter().isEmpty() &&
+    			(y <= 0 ? true : cells.get(y-1).get(x).getVisitCounter().isEmpty()) &&
+    			(x+1 >= mapWidth ? true : cells.get(y).get(x+1).getVisitCounter().isEmpty()) &&
+    			(y+1 >= mapHeight ? true : cells.get(y+1).get(x).getVisitCounter().isEmpty()) &&
+    			(x <= 0 ? true : cells.get(y).get(x-1).getVisitCounter().isEmpty()));
+    }
 
+    /**
+     *
+     * @param g2d
+     */
     public void drawCoords(Graphics2D g2d) {
         Font font_1 = new Font("TimesRoman", Font.PLAIN, (cellSize / 2));
 
         g2d.setFont(font_1);
+        g2d.setColor(Color.white);
         for (int i = 0; i < mapHeight;) {
-            g2d.drawString(String.valueOf((char) ('1' + i)), (int) (cellSize * 0.25), ++i * cellSize + (int) (cellSize * 0.75));
+            g2d.drawString(Integer.toString(1 + i), (int) (cellSize * 0.25), ++i * cellSize + (int) (cellSize * 0.75));
         }
         for (int i = 0; i < mapWidth;) {
             g2d.drawString(String.valueOf((char) ('A' + i)), ++i * cellSize + (int) (cellSize * 0.25), (int) (cellSize * 0.75));
         }
     }
     
+    /**
+     *
+     * @param g2d
+     */
     public void drawStateMarks(Graphics g2d) {
-        Font font = new Font("TimesRoman", Font.PLAIN, cellSize);
+        if (!stateReachable(getInitialState())) {
+            throw new RuntimeException("Initial State is not reachable for the current player.");
+        }
+        if (!stateReachable(getFinalState())) {
+            throw new RuntimeException("Final State is not reachable for the current player.");
+        }
+        
+        Font font = new Font("TimesRoman", Font.PLAIN, cellSize / 2 );
+        g2d.setFont(font); 
         g2d.setColor(Color.black);
         g2d.drawString("I", initialState.getX() * cellSize + (int)(cellSize * 0.375), initialState.getY() * cellSize + (int)(cellSize * 0.75));
         g2d.drawString("F", finalState.getX() * cellSize + (int)(cellSize * 0.375), finalState.getY() * cellSize + (int)(cellSize * 0.75));
     }
 
+    /**
+     *
+     * @param g2d
+     * @param img
+     */
     public void drawPlayer(Graphics g2d, BufferedImage img) {
         int rgb;
         State cs = getCurrentState();
@@ -187,6 +307,29 @@ public class Map {
 
             }
         }
+    }
+    
+    private void drawSolution(Graphics2D g2d) {
+    	g2d.setColor(Color.yellow);
+    	g2d.setStroke(new BasicStroke(2));
+    	for (State s : solution) {
+    		g2d.drawLine(s.getX() * cellSize, s.getY() * cellSize, s.getX() * cellSize + cellSize, s.getY() * cellSize);
+    		g2d.drawLine(s.getX() * cellSize, s.getY() * cellSize, s.getX() * cellSize, s.getY() * cellSize + cellSize);
+    		g2d.drawLine(s.getX() * cellSize + cellSize, s.getY() * cellSize + cellSize, s.getX() * cellSize + cellSize, s.getY() * cellSize);
+    		g2d.drawLine(s.getX() * cellSize + cellSize, s.getY() * cellSize + cellSize, s.getX() * cellSize, s.getY() * cellSize + cellSize);
+    	}
+    	g2d.setColor(Color.red);
+    	g2d.setStroke(new BasicStroke(1));
+    	for (State s : solution) {
+    		g2d.drawLine(s.getX() * cellSize, s.getY() * cellSize, s.getX() * cellSize + cellSize, s.getY() * cellSize);
+    		g2d.drawLine(s.getX() * cellSize, s.getY() * cellSize, s.getX() * cellSize, s.getY() * cellSize + cellSize);
+    		g2d.drawLine(s.getX() * cellSize + cellSize, s.getY() * cellSize + cellSize, s.getX() * cellSize + cellSize, s.getY() * cellSize);
+    		g2d.drawLine(s.getX() * cellSize + cellSize, s.getY() * cellSize + cellSize, s.getX() * cellSize, s.getY() * cellSize + cellSize);
+    	}
+    }
+    
+    public void setSolution(ArrayList<State> s) {
+    	solution = s;
     }
 
     private void setSize(int size) {
@@ -249,7 +392,7 @@ public class Map {
             }
         }
 
-        Terrain terrain = new Terrain(terrainId, cellSize);
+        Terrain terrain = new Terrain(terrainId);
         terrains.add(terrain);
     }
     
@@ -308,6 +451,21 @@ public class Map {
 
         return null;
     }
+    
+    /**
+     *
+     * @param name
+     * @return
+     */
+    public Terrain getTerrain(String name) {
+        for (Terrain t : terrains) {
+            if (t.getName().equals(name)) {
+                return t;
+            }
+        }
+
+        return null;
+    }
 
     /**
      *
@@ -348,18 +506,28 @@ public class Map {
      * @param player
      */
     public void addPlayer(Player player) {
+        for (Player p : players) {
+            if (p.getName() != null && p.getName().equals(player.getName())) {
+                p.setImage(player.getImage());
+                return;
+            }
+        }
+        
         if (players.size() < 4) {
             selectedPlayer = players.isEmpty() ? 0 : selectedPlayer;
             players.add(player);
             return;
         }
+        
         throw new RuntimeException("The maximun number of players is 4!");
     }
     
-    public void removePlayer(Player player) {
-        players.stream().filter((p) -> (p.getName().equals(player.getName()))).forEach((p) -> {
-            players.remove(p);
-        });
+    /**
+     *
+     * @param playerName
+     */
+    public void removePlayer(String playerName) {
+        players.removeIf((Player p) -> (p.getName().equals(playerName)));
     }
 
     /**
@@ -370,8 +538,14 @@ public class Map {
         selectedPlayer = sp;
     }
     
+    /**
+     *
+     * @param player
+     */
     public void setSelectedPlayer(Player player) {
-        players.stream().filter((p) -> (p.getName().equals(player.getName()))).forEach((p) -> {
+        players.stream().filter((Player p) -> {
+            return p.getName().equals(player.getName());
+        }).forEach((Player p) -> {
             selectedPlayer = players.indexOf(p);
         }); 
     }
@@ -394,6 +568,17 @@ public class Map {
     
     /**
      *
+     * @param playerName
+     * @return
+     */
+    public Player getPlayer(String playerName) {
+        return players.stream().filter((Player p) -> {
+            return p.getName().equals(playerName);
+        }).findFirst().get();
+    }
+    
+    /**
+     *
      * @param state
      */
     public void setInitialState(State state) {
@@ -402,7 +587,7 @@ public class Map {
         }
         initialState = state;
         if (currentState == null) {
-            setCurrentState(initialState);
+            //setCurrentState(initialState);
         }
     }
     
@@ -422,12 +607,16 @@ public class Map {
      * @param state
      */
     public void setCurrentState(State state) {
+    	if (state == null) {
+    		currentState = state;
+    		return;
+    	}
         if (!stateReachable(state)) {
             throw new RuntimeException("Selected State is not reachable for the current player");
         }
         currentState = state;
-        addRouteState(currentState);
         cells.get(state.getY() - 1).get(state.getX() - 1).addVisit(++visitCounter);
+        addRouteState(currentState);
     }
     
     /**
@@ -465,8 +654,13 @@ public class Map {
      * @param state
      * @return
      */
-    private boolean stateReachable(State state) {
-        return getSelectedPlayer().getWeights().stream().anyMatch((w) -> (getTerrain(state).getId() == w.getTerrainId()));
+    public boolean stateReachable(State state) {
+        for (Weight w : getSelectedPlayer().getWeights()) {
+            if (w.getTerrainID() == getTerrain(state).getId()) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -474,14 +668,75 @@ public class Map {
      * @param state
      */
     private void addRouteState(State state) {
-        route.add(state);
+        route.add(new Node(state, visitCounter, initialState != null && state.equals(initialState), finalState != null && state.equals(finalState)));
     }
     
     /**
      *
      * @return
      */
-    public ArrayList<State> getRoute() {
+    public ArrayList<Node> getRoute() {
         return new ArrayList<>(route);
+    }
+    
+    public void reset(FileReader fr) throws IOException {
+        initialState = null;
+        finalState = null;
+        currentState = null;
+        
+        visitCounter = 0;
+        mapWidth = 0;
+        mapHeight = 0;
+        cellSize = 50;
+        selectedPlayer = -1;
+        
+        finished = false;
+        
+        cells.clear();
+        terrains.clear();
+        players.clear();
+        route.clear();
+        
+        loadMap(fr);
+    }
+    
+    public void reset() {
+        initialState = null;
+        finalState = null;
+        currentState = null;
+        
+        visitCounter = 0;
+        mapWidth = 0;
+        mapHeight = 0;
+        cellSize = 50;
+        selectedPlayer = -1;
+        
+        finished = false;
+        
+        cells.clear();
+        terrains.clear();
+        players.clear();
+        route.clear();
+    }
+    
+    public void resetVisitCounter() {
+    	cells.forEach((r) -> {
+    		r.forEach((c) -> {
+    			c.resetVisitCounter();
+    		});
+    	});
+        visitCounter = 0;
+    }
+    
+    public void setFinish(boolean f) {
+        finished = f;
+    }
+    
+    public boolean isFinished() {
+        return finished;
+    }
+    
+    public int manhatan(State stt) {
+    	return Math.abs(finalState.getX() - stt.getX()) + Math.abs(finalState.getY() - stt.getY());
     }
 }
